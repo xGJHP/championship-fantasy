@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --accent: #E9A23B;
+  --z-header: 40;
+  --z-overlay: 60;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: #0A0A0B;
+    color: #FAFAFA;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Data-heavy interface, so figures must line up in columns */
+  table, .tabular, input[type="number"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible focus for keyboard users, on the accent so it reads as intentional */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgba(233, 162, 59, 0.28);
+  }
+
+  /*
+   * Every control gets the same feedback without having to touch each file.
+   * Transform only, so it stays on the GPU.
+   */
+  button, a, select, input, textarea, [role="button"] {
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 180ms ease, border-color 180ms ease,
+                color 180ms ease, opacity 180ms ease;
+  }
+  button:active:not(:disabled),
+  [role="button"]:active {
+    transform: translateY(1px) scale(0.995);
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* Every interactive element gets the same weight of feedback */
+  .press {
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  }
+  .press:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+/*
+ * The pitch. A bright green rectangle would fight everything else on the page,
+ * so this is a dark surface with faint mown stripes and hairline markings.
+ * Drawn in CSS, which also keeps us clear of any league or club imagery.
+ */
+.pitch {
+  position: relative;
+  border: 1px solid #232327;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.016) 0 5%,
+      rgba(255, 255, 255, 0) 5% 10%
+    ),
+    radial-gradient(120% 80% at 50% -10%, #16161A 0%, #0E0E10 55%, #0B0B0C 100%);
+}
+
+/* Centre circle and halfway line, barely there */
+.pitch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(255,255,255,0.05) 50%, transparent calc(50% + 0.5px));
+}
+.pitch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 132px;
+  height: 132px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Fine grain, so large dark areas do not read as flat vector */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.slot-drop {
+  outline: 2px dashed rgba(233, 162, 59, 0.9);
+  outline-offset: 2px;
+}
+
+/* Staggered entry, so a page does not mount all at once */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #232327; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #33333A; }

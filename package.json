@@ -1,0 +1,38 @@
+{
+  "name": "fcs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "sync:fixtures": "tsx scripts/sync-fixtures.ts",
+    "process:gw": "tsx scripts/process-gameweek.ts",
+    "check-env": "tsx scripts/check-env.ts",
+    "seed:clubs": "tsx scripts/seed-clubs.ts",
+    "import:players": "tsx scripts/import-players.ts",
+    "import:players:dry": "tsx scripts/import-players.ts --dry",
+    "import:players:force": "tsx scripts/import-players.ts --force-prices"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "next": "15.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}
