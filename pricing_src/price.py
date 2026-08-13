@@ -10,7 +10,7 @@ Prices are driven by expected FANTASY output, not squad value:
 
 Costs are tenths of a million: 55 == GBP 5.5m
 """
-import csv, math, collections
+import csv, math, collections, json, os
 
 CLUB_ORDER = ["BIR","BLB","BOL","BRC","BUR","CAR","CHA","DER","LIN","MID","MIL","NOR",
               "POR","PRE","QPR","SHU","SOU","STK","SWA","WAT","WBA","WHU","WOL","WRX"]
@@ -211,9 +211,20 @@ for key, lst in buckets.items():
     for i, (mv, name) in enumerate(sorted(lst, reverse=True)):
         depth_of[(key[0], name)] = i
 
+# Prices you have edited live in /admin/prices, pulled down by
+# `npm run export:players`. These win over everything, including ANCHOR, so
+# re-running this model can never quietly undo a change you made on the site.
+LIVE = {}
+_live_path = os.path.join(os.path.dirname(__file__), "live_prices.json")
+if os.path.exists(_live_path):
+    LIVE = json.load(open(_live_path))
+    print(f"Loaded {len(LIVE)} live prices, these override the model.\n")
+
 rows = []
 for club, name, tmpos, mv in raw:
     pos, cost = price(club, name, tmpos, mv, depth_of[(club, name)])
+    if name in LIVE:
+        cost = int(LIVE[name])
     rows.append({
         "club_code": club, "club_id": CLUB_ID[club], "web_name": name,
         "position": pos, "now_cost": cost, "start_cost": cost, "tm_pos": tmpos,
