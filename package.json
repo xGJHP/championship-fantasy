@@ -14,7 +14,9 @@
     "seed:clubs": "tsx scripts/seed-clubs.ts",
     "import:players": "tsx scripts/import-players.ts",
     "import:players:dry": "tsx scripts/import-players.ts --dry",
-    "import:players:force": "tsx scripts/import-players.ts --force-prices"
+    "import:players:force": "tsx scripts/import-players.ts --force-prices",
+    "export:players": "tsx scripts/export-players.ts",
+    "export:players:dry": "tsx scripts/export-players.ts --dry"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

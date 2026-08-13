@@ -63,17 +63,24 @@ If any of those appear, stop and tell me. If they do not, carry on.
 
 ## 5. First commit
 
-```powershell
-git add .
-git commit -m "Championship fantasy game"
-```
-
-Git may ask who you are the first time:
+**Set your identity first.** Git refuses to commit without it, and the failure
+is easy to miss because the next command you run gives a different error
+entirely.
 
 ```powershell
 git config --global user.name "Joey Poole"
 git config --global user.email "joe.poole99@gmail.com"
 ```
+
+Then:
+
+```powershell
+git add .
+git commit -m "Championship fantasy game"
+```
+
+You should see a line like `85 files changed`. If you do not see that, the
+commit did not happen, and nothing after this point will work.
 
 ---
 
@@ -92,11 +99,26 @@ Click Create.
 
 ## 7. Push
 
-GitHub shows you the commands. They will look like this:
+**Copy the URL from your own GitHub page.** It is on the screen straight after
+you create the repo and contains your actual username. Do not retype it from
+here.
 
 ```powershell
-git remote add origin https://github.com/YOURNAME/championship-fantasy.git
+git remote add origin PASTE_YOUR_URL_HERE
 git push -u origin main
+```
+
+Check it took the right one before pushing:
+
+```powershell
+git remote -v
+```
+
+If that prints anything containing `YOURNAME`, or the wrong account, fix it
+with `set-url` rather than `add`, which will refuse because the remote exists:
+
+```powershell
+git remote set-url origin PASTE_YOUR_URL_HERE
 ```
 
 A browser window opens asking you to sign in to GitHub. That is Git Credential
@@ -149,6 +171,21 @@ git push
 ```
 
 Vercel picks it up within seconds.
+
+---
+
+## If a push fails
+
+**`remote origin already exists`** — you ran `git remote add` twice. Use
+`git remote set-url origin <url>` instead.
+
+**`src refspec main does not match any`** — there is no commit on `main` yet.
+Nothing was committed, usually because Git had no name and email configured and
+the commit quietly failed. Set your identity, run `git commit` again, check it
+reports files changed, then push.
+
+**`repository not found`** — the URL is wrong, or the repo is private and you
+are signed into a different GitHub account. Check `git remote -v`.
 
 ---
 

@@ -12,19 +12,30 @@ export async function GET(request: Request) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
 
-  const fail = (msg: string) =>
-    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(msg)}`);
+  /**
+   * Redirect with a short code, never the provider's raw message. Those
+   * messages name the SDK and mention other frameworks, and anything put in
+   * the URL ends up in the page source.
+   */
+  const fail = (code: string) => NextResponse.redirect(`${origin}/login?error=${code}`);
 
-  if (!hasSupabase()) return fail("Supabase is not configured on the server.");
+  const codeFor = (msg: string) => {
+    if (/expired/i.test(msg)) return "link_expired";
+    if (/pkce|verifier/i.test(msg)) return "link_wrong_device";
+    if (/rate limit/i.test(msg)) return "rate_limited";
+    return "link_failed";
+  };
+
+  if (!hasSupabase()) return fail("unavailable");
 
   const linkError = searchParams.get("error_description") ?? searchParams.get("error");
-  if (linkError) return fail(linkError);
+  if (linkError) return fail(codeFor(linkError));
 
   const supabase = await createClient();
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return fail(error.message);
+    if (error) return fail(codeFor(error.message));
     return NextResponse.redirect(`${origin}${next}`);
   }
 
@@ -33,9 +44,9 @@ export async function GET(request: Request) {
       type: type as "magiclink" | "email" | "signup" | "recovery",
       token_hash: tokenHash,
     });
-    if (error) return fail(error.message);
+    if (error) return fail(codeFor(error.message));
     return NextResponse.redirect(`${origin}${next}`);
   }
 
-  return fail("That link did not carry a login code. Try the 6 digit code instead.");
+  return fail("link_failed");
 }
