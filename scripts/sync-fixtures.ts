@@ -11,6 +11,7 @@
  */
 import "./_env";
 import { admin } from "./_supabase";
+import { deadlineFor, DEADLINE_MINUTES_BEFORE_KICKOFF } from "../lib/gameweek";
 
 const COMP = "ELC"; // English League Championship
 const BASE = "https://api.football-data.org/v4";
@@ -68,8 +69,8 @@ async function main() {
   for (const m of matches) {
     if (!m.matchday) continue;
     const existing = gwRows.get(m.matchday);
-    // Deadline is 90 minutes before the earliest kickoff of that matchday
-    const deadline = new Date(new Date(m.utcDate).getTime() - 90 * 60 * 1000).toISOString();
+    // Deadline is a set time before the earliest kickoff of that matchday
+    const deadline = deadlineFor(m.utcDate);
     if (!existing || deadline < existing.deadline_time) {
       gwRows.set(m.matchday, {
         id: m.matchday,
@@ -81,7 +82,7 @@ async function main() {
   if (gwRows.size) {
     const { error } = await db.from("gameweeks").upsert([...gwRows.values()], { onConflict: "id" });
     if (error) throw error;
-    console.log(`Upserted ${gwRows.size} gameweeks.`);
+    console.log(`Upserted ${gwRows.size} gameweeks, each locking ${DEADLINE_MINUTES_BEFORE_KICKOFF} minutes before its first kickoff.`);
   }
 
   // Fixtures

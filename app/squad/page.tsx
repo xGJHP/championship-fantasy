@@ -4,7 +4,7 @@ import { DEMO_PLAYERS } from "@/data/demo-players";
 import { hasSupabase, createClient } from "@/lib/supabase/server";
 import { Player } from "@/lib/types";
 import { fmtMoney } from "@/lib/rules";
-import { upcomingGameweek, deadlinePassed } from "@/lib/gameweek";
+import { upcomingGameweek, deadlinePassed, formatDeadline } from "@/lib/gameweek";
 
 export const dynamic = "force-dynamic";
 
@@ -89,10 +89,7 @@ function Shell({
             </div>
             {deadline && (
               <div className="text-xs text-mute">
-                Deadline {new Date(deadline).toLocaleString("en-GB", {
-                  weekday: "short", day: "numeric", month: "short",
-                  hour: "2-digit", minute: "2-digit",
-                })}
+Deadline {formatDeadline(deadline)}
               </div>
             )}
           </div>

@@ -3,7 +3,7 @@ import TransferMarket from "@/components/TransferMarket";
 import { hasSupabase, createClient } from "@/lib/supabase/server";
 import { Player, ChipName } from "@/lib/types";
 import { SquadSlot } from "@/lib/transfers";
-import { upcomingGameweek, deadlinePassed } from "@/lib/gameweek";
+import { upcomingGameweek, deadlinePassed, formatDeadline } from "@/lib/gameweek";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +83,7 @@ export default async function TransfersPage() {
             Gameweek {target.id}
           </div>
           <div className="text-xs text-mute">
-            Deadline {new Date(target.deadline_time).toLocaleString("en-GB", {
-              weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-            })}
+Deadline {formatDeadline(target.deadline_time)}
           </div>
         </div>
       </div>
