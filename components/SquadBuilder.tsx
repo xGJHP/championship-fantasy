@@ -6,6 +6,7 @@ import { Player, Position, POSITIONS } from "@/lib/types";
 import { CLUBS } from "@/data/clubs";
 import { kitSwatchStyle } from "@/lib/kit";
 import { buildCardNames } from "@/lib/name";
+import { autoPickSquad } from "@/lib/autopick";
 import PlayerChip from "./PlayerChip";
 import {
   RULES, validateSquad, validateXI, isValidFormation, formationString, fmtMoney,
@@ -153,45 +154,36 @@ export default function SquadBuilder({
     if (vice === starter.id) setVice(sub.id);
   };
 
+  /**
+   * Fills whatever is missing. Anyone already picked stays exactly where they
+   * are, so this doubles as "finish my team off" once you have chosen the
+   * players you actually care about.
+   */
   const autoPick = () => {
-    // Cheap, greedy fill: best points-per-million that keeps every rule legal
-    const pool = [...players]
-      .filter((p) => p.status === "a")
-      .sort((a, b) => b.total_points / b.now_cost - a.total_points / a.now_cost);
+    const result = autoPickSquad(
+      players.map((p) => ({
+        id: p.id, club_id: p.club_id, position: p.position,
+        now_cost: p.now_cost, total_points: p.total_points, status: p.status,
+      })),
+      { keep: squadIds }
+    );
 
-    const chosen: Player[] = [];
-    const need = { ...RULES.squadQuota };
-    let left = RULES.budget;
-
-    for (const p of pool) {
-      if (need[p.position] <= 0) continue;
-      if (chosen.filter((c) => c.club_id === p.club_id).length >= RULES.maxPerClub) continue;
-      const remainingSlots = Object.values(need).reduce((a, b) => a + b, 0) - 1;
-      if (left - p.now_cost < remainingSlots * 38) continue; // keep enough for the rest
-      chosen.push(p);
-      need[p.position]--;
-      left -= p.now_cost;
-      if (chosen.length === 15) break;
+    if (!result.ok) {
+      setSaveMsg({ ok: false, text: result.reason });
+      return;
     }
 
-    const ids = chosen.map((c) => c.id);
-    setSquadIds(ids);
+    setSquadIds(result.squad.map((p) => p.id));
+    setXiIds(result.xi);
+    // Only take the suggested armband if they have not already chosen one
+    if (!captain || !result.xi.includes(captain)) setCaptain(result.captainId);
+    if (!vice || !result.xi.includes(vice)) setVice(result.viceId);
 
-    const starters: number[] = [];
-    (["GK", "DEF", "MID", "FWD"] as Position[]).forEach((pos) => {
-      chosen
-        .filter((c) => c.position === pos)
-        .sort((a, b) => b.total_points - a.total_points)
-        .slice(0, DEFAULT_FORMATION[pos])
-        .forEach((c) => starters.push(c.id));
-    });
-    setXiIds(starters);
-
-    const best = chosen
-      .filter((c) => starters.includes(c.id))
-      .sort((a, b) => b.total_points - a.total_points);
-    setCaptain(best[0]?.id ?? null);
-    setVice(best[1]?.id ?? null);
+    setSaveMsg(
+      result.added.length && result.kept.length
+        ? { ok: true, text: `Added ${result.added.length} player${result.added.length === 1 ? "" : "s"} around the ${result.kept.length} you picked.` }
+        : null
+    );
   };
 
   const reset = () => {
@@ -448,7 +440,11 @@ export default function SquadBuilder({
 
         <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={autoPick} className="rounded-lg bg-panel2 px-3 py-2 text-sm font-bold text-white hover:bg-line">
-            Auto pick
+            {squad.length === 0
+              ? "Auto pick"
+              : squad.length === RULES.squadSize
+              ? "Rebuild the rest"
+              : `Fill the other ${RULES.squadSize - squad.length}`}
           </button>
           <button onClick={reset} className="rounded-lg bg-panel2 px-3 py-2 text-sm font-bold text-white hover:bg-line">
             Reset
